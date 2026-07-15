@@ -43,6 +43,8 @@ Set a strong `JWT_SECRET_KEY` and `ADMIN_PASSWORD` in `.env` (or export them in 
 
 Open `http://127.0.0.1:8000/docs` for interactive documentation. API routes are versioned below `/api/v1` by default.
 
+Import [`postman/Zamin.postman_collection.json`](postman/Zamin.postman_collection.json) into Postman for ready-made requests, token-saving login scripts, and admin/editor/public workflows. Paste local demo passwords from ignored `credentials.txt` into the collection variables after import.
+
 For quick local development, `AUTO_CREATE_SCHEMA=true` creates a fresh schema at app startup. Use Alembic (`alembic upgrade head`) in deployed environments and set `AUTO_CREATE_SCHEMA=false`.
 
 ## Core workflow

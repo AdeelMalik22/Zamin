@@ -1,0 +1,1417 @@
+{
+  "info": {
+    "_postman_id": "0f5a5a7b-46b7-4b84-a0ee-6c08e2f6a3da",
+    "name": "Zamin — Real Estate Listings API",
+    "description": "# Zamin API collection\n\nImport this file into Postman, start the API, then send **Auth / Login as Admin** and **Auth / Login as Editor**. The login requests save access and refresh tokens automatically.\n\n## Local demo setup\n\n1. Run `python3 seed.py` and start the API at `http://127.0.0.1:8000`.\n2. Copy the passwords from the ignored local `credentials.txt` file into the `adminPassword` and `editorPassword` collection variables. Passwords are deliberately not stored in this collection.\n3. Send **Public / List Public Cities** once; it selects Lahore (or the first active city) for `cityId`.\n\nThe collection includes safe examples and state-changing requests. Requests that create, update, approve, reject, deactivate, or delete data are clearly named. Image-upload requests require selecting a local JPEG, PNG, or WEBP file in Postman.\n\nThe **Admin via Editor Listing APIs** folder proves that an admin token can use every `/api/v1/editor/listings` operation and manage listings from every editor.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "adeel.admin@zamin.demo",
+      "type": "string",
+      "description": "Local demo email from credentials.txt"
+    },
+    {
+      "key": "adminPassword",
+      "value": "",
+      "type": "string",
+      "description": "Paste the local demo password from credentials.txt; do not commit real passwords."
+    },
+    {
+      "key": "editorEmail",
+      "value": "ali.raza@zamin.demo",
+      "type": "string",
+      "description": "Local demo editor email from credentials.txt"
+    },
+    {
+      "key": "editorPassword",
+      "value": "",
+      "type": "string",
+      "description": "Paste the local demo password from credentials.txt; do not commit real passwords."
+    },
+    {
+      "key": "adminAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminRefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "editorAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "editorRefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cityId",
+      "value": "1",
+      "type": "string",
+      "description": "Set automatically by Public / List Public Cities. The seeded Lahore city normally has ID 1."
+    },
+    {
+      "key": "createdCityId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newCityName",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "editorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdEditorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newEditorEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newEditorPassword",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "editorListingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pendingListingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminListingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminEditorListingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "publicListingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "editorImageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminImageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminEditorImageId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00. System",
+      "item": [
+        {
+          "name": "Root",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/",
+            "description": "Returns API metadata and links."
+          }
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Use this to confirm the server is running."
+          }
+        }
+      ]
+    },
+    {
+      "name": "01. Auth",
+      "item": [
+        {
+          "name": "Login as Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Admin login succeeded\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    pm.collectionVariables.set(\"adminAccessToken\", body.access_token);",
+                  "    pm.collectionVariables.set(\"adminRefreshToken\", body.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Stores admin access and refresh tokens in collection variables."
+          }
+        },
+        {
+          "name": "Login as Editor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Editor login succeeded\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    pm.collectionVariables.set(\"editorAccessToken\", body.access_token);",
+                  "    pm.collectionVariables.set(\"editorRefreshToken\", body.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{editorEmail}}\",\n  \"password\": \"{{editorPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Stores editor access and refresh tokens in collection variables."
+          }
+        },
+        {
+          "name": "Refresh Admin Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Token refresh succeeded\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    pm.collectionVariables.set(\"adminAccessToken\", body.access_token);",
+                  "    pm.collectionVariables.set(\"adminRefreshToken\", body.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{adminRefreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/auth/refresh"
+          }
+        },
+        {
+          "name": "Current Account (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/auth/me"
+          }
+        },
+        {
+          "name": "Current Account (Editor)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{editorAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Public",
+      "item": [
+        {
+          "name": "List Public Cities",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Cities returned\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    const city = body.items.find(function (item) { return item.name === \"Lahore\"; }) || body.items[0];",
+                  "    if (city) { pm.collectionVariables.set(\"cityId\", city.id); }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/cities?page=1&page_size=50",
+            "description": "Sets cityId to Lahore when present, otherwise to the first active city."
+          }
+        },
+        {
+          "name": "Search Approved Listings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Public listing search succeeded\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.items && body.items.length > 0) {",
+                  "        pm.collectionVariables.set(\"publicListingId\", body.items[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/listings?city=Lahore&q=Gulberg&search_mode=contains&page=1&page_size=20",
+            "description": "Searches only approved listings and stores the first result as publicListingId."
+          }
+        },
+        {
+          "name": "Get Public Listing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/listings/{{publicListingId}}",
+            "description": "Send Search Approved Listings first, or set publicListingId manually."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Admin Cities",
+      "item": [
+        {
+          "name": "List Cities",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/admin/cities?include_inactive=true&page=1&page_size=50"
+          }
+        },
+        {
+          "name": "Create Demo City (state-changing)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"newCityName\", \"Postman Demo City \" + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"City was created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"createdCityId\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{newCityName}}\",\n  \"province_or_region\": \"Punjab\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/admin/cities"
+          }
+        },
+        {
+          "name": "Update Created Demo City (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"province_or_region\": \"Punjab (Postman demo)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/admin/cities/{{createdCityId}}",
+            "description": "Send Create Demo City first."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Admin Editors",
+      "item": [
+        {
+          "name": "List Editors",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Editors returned\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.items && body.items.length > 0) {",
+                  "        pm.collectionVariables.set(\"editorId\", body.items[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/admin/editors?page=1&page_size=20"
+          }
+        },
+        {
+          "name": "Create Demo Editor (state-changing)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now();",
+                  "pm.collectionVariables.set(\"newEditorEmail\", \"postman.editor.\" + suffix + \"@zamin.demo\");",
+                  "pm.collectionVariables.set(\"newEditorPassword\", \"PostmanDemo@2026!\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Editor was created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    pm.collectionVariables.set(\"createdEditorId\", body.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Postman Test Editor\",\n  \"email\": \"{{newEditorEmail}}\",\n  \"phone_number\": \"+923001234567\",\n  \"assigned_city_ids\": [{{cityId}}],\n  \"password\": \"{{newEditorPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/admin/editors",
+            "description": "Send Public / List Public Cities first to select a valid city."
+          }
+        },
+        {
+          "name": "Update Created Demo Editor (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Postman Test Editor Updated\",\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/admin/editors/{{createdEditorId}}",
+            "description": "Send Create Demo Editor first."
+          }
+        },
+        {
+          "name": "Deactivate Created Demo Editor (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/admin/editors/{{createdEditorId}}",
+            "description": "Deactivates only the disposable editor created by this collection."
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Editor Listings (editor token)",
+      "item": [
+        {
+          "name": "Create Listing (state-changing)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Pending listing was created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"editorListingId\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{editorAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman family home in DHA Phase 6\",\n  \"description\": \"A realistically described local demo listing created through Postman for the review workflow.\",\n  \"city_id\": {{cityId}},\n  \"address\": \"House 42, DHA Phase 6, Lahore\",\n  \"price\": 28500000,\n  \"property_type\": \"house\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/editor/listings",
+            "description": "Use the seeded Ali Raza editor with Lahore selected by Public / List Public Cities."
+          }
+        },
+        {
+          "name": "List My Listings",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{editorAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/editor/listings?status=pending&page=1&page_size=20"
+          }
+        },
+        {
+          "name": "Get My Created Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.images && body.images.length > 0) {",
+                  "        pm.collectionVariables.set(\"editorImageId\", body.images[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{editorAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/editor/listings/{{editorListingId}}"
+          }
+        },
+        {
+          "name": "Update My Created Listing (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{editorAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 28750000,\n  \"description\": \"Updated Postman demo listing with an adjusted asking price and viewing details.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/editor/listings/{{editorListingId}}"
+          }
+        },
+        {
+          "name": "Upload Image to My Listing (select a file)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.images && body.images.length > 0) {",
+                  "        pm.collectionVariables.set(\"editorImageId\", body.images[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{editorAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": [],
+                  "description": "Choose a JPEG, PNG, or WEBP file before sending."
+                },
+                {
+                  "key": "cover_index",
+                  "value": "0",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/editor/listings/{{editorListingId}}/images"
+          }
+        },
+        {
+          "name": "Set My Listing Cover Image (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{editorAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_cover\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/editor/listings/{{editorListingId}}/images/{{editorImageId}}"
+          }
+        },
+        {
+          "name": "Delete My Listing Image (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{editorAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/editor/listings/{{editorListingId}}/images/{{editorImageId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Admin Listings",
+      "item": [
+        {
+          "name": "Create Admin Listing (auto-approved, state-changing)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Admin listing was created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"adminListingId\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman admin-listed apartment in Gulberg\",\n  \"description\": \"A local demo apartment created directly by the admin and immediately approved.\",\n  \"city_id\": {{cityId}},\n  \"address\": \"Apartment 12, MM Alam Road, Gulberg III, Lahore\",\n  \"price\": 34500000,\n  \"property_type\": \"apartment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/admin/listings"
+          }
+        },
+        {
+          "name": "List All Listings",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/admin/listings?page=1&page_size=20"
+          }
+        },
+        {
+          "name": "Get Admin-Created Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.images && body.images.length > 0) {",
+                  "        pm.collectionVariables.set(\"adminImageId\", body.images[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/admin/listings/{{adminListingId}}"
+          }
+        },
+        {
+          "name": "List Pending Listings for Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Pending review queue returned\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.items && body.items.length > 0) {",
+                  "        pm.collectionVariables.set(\"pendingListingId\", body.items[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/admin/listings?status=pending&page=1&page_size=20",
+            "description": "Stores the first pending listing as pendingListingId. Send either Approve or Reject next, not both for the same ID."
+          }
+        },
+        {
+          "name": "Approve Pending Listing (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/admin/listings/{{pendingListingId}}/approve",
+            "description": "Send List Pending Listings for Review first."
+          }
+        },
+        {
+          "name": "Reject Pending Listing (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Please add clearer exterior photos before approval.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/admin/listings/{{pendingListingId}}/reject",
+            "description": "Use instead of Approve for the selected pending listing."
+          }
+        },
+        {
+          "name": "Upload Image to Admin Listing (select a file)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.images && body.images.length > 0) {",
+                  "        pm.collectionVariables.set(\"adminImageId\", body.images[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": [],
+                  "description": "Choose a JPEG, PNG, or WEBP file before sending."
+                },
+                {
+                  "key": "cover_index",
+                  "value": "0",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/admin/listings/{{adminListingId}}/images"
+          }
+        },
+        {
+          "name": "Set Admin Listing Cover Image (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_cover\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/admin/listings/{{adminListingId}}/images/{{adminImageId}}"
+          }
+        },
+        {
+          "name": "Delete Admin Listing Image (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/admin/listings/{{adminListingId}}/images/{{adminImageId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. Admin via Editor Listing APIs (admin token)",
+      "item": [
+        {
+          "name": "Create Listing via Editor Route (auto-approved, state-changing)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Admin can create through the editor route\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"adminEditorListingId\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman admin workspace listing in DHA\",\n  \"description\": \"This demonstrates an admin using the editor listing API with full permissions.\",\n  \"city_id\": {{cityId}},\n  \"address\": \"House 18, DHA Phase 6, Lahore\",\n  \"price\": 41500000,\n  \"property_type\": \"house\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/editor/listings"
+          }
+        },
+        {
+          "name": "List Every Listing via Editor Route",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/editor/listings?page=1&page_size=100",
+            "description": "Unlike an editor token, an admin token sees listings from every editor."
+          }
+        },
+        {
+          "name": "Get Any Pending Editor Listing via Editor Route",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/editor/listings/{{pendingListingId}}",
+            "description": "Send Admin Listings / List Pending Listings for Review first."
+          }
+        },
+        {
+          "name": "Update Any Pending Editor Listing via Editor Route (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated by the admin through the editor listing API.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/editor/listings/{{pendingListingId}}",
+            "description": "This proves an admin can update an editor-owned listing."
+          }
+        },
+        {
+          "name": "Upload Image via Editor Route as Admin (select a file)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.images && body.images.length > 0) {",
+                  "        pm.collectionVariables.set(\"adminEditorImageId\", body.images[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": [],
+                  "description": "Choose a JPEG, PNG, or WEBP file before sending."
+                },
+                {
+                  "key": "cover_index",
+                  "value": "0",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/editor/listings/{{adminEditorListingId}}/images"
+          }
+        },
+        {
+          "name": "Set Cover via Editor Route as Admin (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_cover\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/v1/editor/listings/{{adminEditorListingId}}/images/{{adminEditorImageId}}"
+          }
+        },
+        {
+          "name": "Delete Image via Editor Route as Admin (state-changing)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/editor/listings/{{adminEditorListingId}}/images/{{adminEditorImageId}}"
+          }
+        }
+      ]
+    }
+  ]
+}
