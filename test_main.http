@@ -1,0 +1,62 @@
+@serverUrl = http://127.0.0.1:8000
+@baseUrl = {{serverUrl}}/api/v1
+@adminToken = paste-admin-access-token-here
+@editorToken = paste-editor-access-token-here
+@listingId = paste-listing-id-here
+
+### Public health check
+GET {{serverUrl}}/health
+Accept: application/json
+
+### Admin login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "your-admin-password"
+}
+
+### Add a supported city
+POST {{baseUrl}}/admin/cities
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Lahore",
+  "province_or_region": "Punjab"
+}
+
+### Create an editor (replace city ID)
+POST {{baseUrl}}/admin/editors
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "full_name": "Ayesha Agent",
+  "email": "ayesha@example.com",
+  "phone_number": "+923111234567",
+  "assigned_city_ids": [1]
+}
+
+### Editor creates a pending listing
+POST {{baseUrl}}/editor/listings
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+  "title": "Modern house in Gulberg",
+  "description": "Three bedroom family home.",
+  "city_id": 1,
+  "address": "12 Main Boulevard, Gulberg, Lahore",
+  "price": "25000000.00",
+  "property_type": "house"
+}
+
+### Admin approves a pending listing
+POST {{baseUrl}}/admin/listings/{{listingId}}/approve
+Authorization: Bearer {{adminToken}}
+
+### Public search (contains, regex, or fuzzy)
+GET {{baseUrl}}/listings?city=Lahore&q=Gulberg&search_mode=contains
+Accept: application/json
