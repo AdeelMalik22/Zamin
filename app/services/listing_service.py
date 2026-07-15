@@ -4,7 +4,7 @@ from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.constants import ListingStatus
+from app.core.constants import ListingStatus, UserRole
 from app.exceptions.custom_exceptions import ConflictError, ForbiddenError, NotFoundError, ValidationAppError
 from app.models.listing import Listing, ListingImage, ListingStatusHistory
 from app.models.user import User
@@ -162,6 +162,19 @@ class ListingService:
                 editor,
                 "Edited and resubmitted",
             )
+        commit_or_raise(self.db, "unable to update listing")
+        return self.get_or_404(listing.id)
+
+    def update_for_admin(self, listing_id: str, payload: ListingUpdate, admin: User) -> Listing:
+        """Update any listing without an editor's ownership or city-assignment limits."""
+        if admin.role != UserRole.ADMIN:
+            raise ForbiddenError("admin access required")
+        listing = self.get_or_404(listing_id)
+        changes = payload.model_dump(exclude_unset=True)
+        if "city_id" in changes:
+            self.city_service.get_active_or_error(changes["city_id"])
+        for field_name, value in changes.items():
+            setattr(listing, field_name, value)
         commit_or_raise(self.db, "unable to update listing")
         return self.get_or_404(listing.id)
 

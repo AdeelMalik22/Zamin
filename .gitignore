@@ -7,6 +7,7 @@ htmlcov/
 .venv/
 venv/
 .env
+credentials.txt
 real_estate.db
 *.sqlite3
 media/

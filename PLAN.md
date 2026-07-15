@@ -9,11 +9,11 @@
 - [x] Admin review queue with approve/reject audit history
 - [x] Public approved-listing browse and contains/regex/fuzzy search
 - [x] Initial Alembic migration, Docker scaffolding, and service-level tests
-- [x] Idempotent development mock-data seed command
+- [x] Idempotent realistic Pakistani demo-data seed script and local credentials file
 
 ## Current development data
 
-`python -m app.cli seed-mock-data` seeds the following on a fresh database:
+`python seed.py` seeds the following on a fresh database:
 
 | Entity | Records |
 | --- | ---: |
@@ -27,7 +27,7 @@
 | Listing images | 20 |
 | Listing status history | 300 |
 
-Each editor owns 20 listings: 10 approved and 10 pending.
+Each editor owns 20 listings: 10 approved and 10 pending. Cities and addresses use real Pakistani location names, while all prices, descriptions, contacts, and listings remain generated development data.
 
 ## Next milestones
 

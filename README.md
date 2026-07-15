@@ -49,7 +49,7 @@ For quick local development, `AUTO_CREATE_SCHEMA=true` creates a fresh schema at
 
 1. Admin logs in at `POST /api/v1/auth/login` and creates supported cities.
 2. Admin creates city-scoped editors at `POST /api/v1/admin/editors`; the initial password is returned only once.
-3. Editors submit `POST /api/v1/editor/listings` and upload JPEG, PNG, or WEBP images.
+3. Editors submit `POST /api/v1/editor/listings` and upload JPEG, PNG, or WEBP images. Admin can also use every editor-listing endpoint, with access to all listings; editors remain limited to their own.
 4. Admin reviews pending listings at `GET /api/v1/admin/listings?status=pending` and approves or rejects them.
 5. Visitors browse `GET /api/v1/listings` and `GET /api/v1/listings/{id}` anonymously.
 
@@ -70,15 +70,17 @@ The public contact number resolves as: listing override → submitting editor �
 
 The test suite covers admin authentication, editor provisioning, and the rejected → resubmitted → approved listing workflow.
 
-## Mock data
+## Realistic demo data
 
-Seed deterministic development data with:
+Seed generated—but realistic—Pakistani development data with:
 
 ```bash
-.venv/bin/python -m app.cli seed-mock-data
+.venv/bin/python seed.py
 ```
 
-On a fresh database this creates one admin, 20 cities, 10 editors, 200 listings (10 approved and 10 pending per editor), 20 editor-city assignments, 20 cover images, and 300 audit-history rows. The default mock admin is `mock.admin@example.com` with password `MockAdmin123!`; change it with `--admin-password` if needed. Do not run this command against production data.
+It creates real Pakistani city and area names such as Lahore/DHA/Gulberg, Karachi/DHA/Bahria Town, and Islamabad/Bahria Enclave; prices and descriptions are realistic but generated. On a fresh database it creates one admin, 20 cities, 10 editors, 200 listings (10 approved and 10 pending per editor), 20 editor-city assignments, 20 cover images, and 300 audit-history rows.
+
+The script writes local credentials to `credentials.txt`, which is ignored by Git. Do not run it against production data.
 
 ## Docker
 
